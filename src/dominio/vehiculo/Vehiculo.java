@@ -62,4 +62,16 @@ public class Vehiculo {
 		this.vin = vin;
 	}
 
+	public List<OrdenDeTrabajo> getOrdenesDeTrabajo() {
+		return ordenesDeTrabajo;
+	}
+
+	public void agregarOrdenDeTrabajo(OrdenDeTrabajo orden) {
+		this.ordenesDeTrabajo.add(orden);
+	}
+
+	public void eliminarOrdenDeTrabajo(OrdenDeTrabajo orden) {
+		this.ordenesDeTrabajo.remove(orden);
+	}
+
 }

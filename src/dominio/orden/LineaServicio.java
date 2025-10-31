@@ -5,6 +5,12 @@ public class LineaServicio {
 	private double horas;
 	private double tarifaHora;
 
+	public LineaServicio(String descripcion, double horas, double tarifaHora) {
+		this.descripcion = descripcion;
+		this.horas = horas;
+		this.tarifaHora = tarifaHora;
+	}
+
 	public String getDescripcion() {
 		return descripcion;
 	}

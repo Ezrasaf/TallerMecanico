@@ -1,14 +1,14 @@
 package dominio.orden;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import dominio.empleado.Mecanico;
 
 public class OrdenDeTrabajo implements Facturable {
 	private int numeroOrden;
-	private Date fechaIngreso;
+	private LocalDate fechaIngreso;
 	private EstadoOT estado;
 	private String diagnostico;
 	private Prioridad prioridad;
@@ -17,8 +17,8 @@ public class OrdenDeTrabajo implements Facturable {
 	private List<LineaServicio> servicios;
 	private float horasTrabajadas;
 
-	public OrdenDeTrabajo(int numeroOrden, Date fechaIngreso, EstadoOT estado, String diagnostico,
-			Prioridad prioridad, Mecanico asignadoA) {
+	public OrdenDeTrabajo(int numeroOrden, LocalDate fechaIngreso, EstadoOT estado, String diagnostico,
+			Prioridad prioridad, Mecanico asignadoA, float horasTrabajadas) {
 		this.numeroOrden = numeroOrden;
 		this.fechaIngreso = fechaIngreso;
 		this.estado = estado;
@@ -27,7 +27,7 @@ public class OrdenDeTrabajo implements Facturable {
 		this.asignadoA = asignadoA;
 		this.repuestos = new ArrayList<>();
 		this.servicios = new ArrayList<>();
-		this.horasTrabajadas = 0;
+		this.horasTrabajadas = horasTrabajadas;
 	}
 
 	public int getNumeroOrden() {
@@ -38,11 +38,11 @@ public class OrdenDeTrabajo implements Facturable {
 		this.numeroOrden = numeroOrden;
 	}
 
-	public Date getFechaIngreso() {
+	public LocalDate getFechaIngreso() {
 		return fechaIngreso;
 	}
 
-	public void setFechaIngreso(Date fechaIngreso) {
+	public void setFechaIngreso(LocalDate fechaIngreso) {
 		this.fechaIngreso = fechaIngreso;
 	}
 
@@ -86,13 +86,21 @@ public class OrdenDeTrabajo implements Facturable {
 			total += itemRepuesto.subTotal();
 		}
 		for (LineaServicio lineaServicio : servicios) {
+			lineaServicio
+					.setTarifaHora(this.asignadoA.calcularTarifaHora(this.horasTrabajadas, asignadoA.getSalario()));
 			total += lineaServicio.subTotal();
 		}
 
-		total += asignadoA.calcularTarifaHora(this.horasTrabajadas, asignadoA.getSalario());
-
 		return total;
 
+	}
+
+	public void agregarRepuesto(ItemRepuesto itemRepuesto) {
+		this.repuestos.add(itemRepuesto);
+	}
+
+	public void agregarServicio(LineaServicio lineaServicio) {
+		this.servicios.add(lineaServicio);
 	}
 
 }
