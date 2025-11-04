@@ -1,8 +1,6 @@
 package vista;
 
 import javax.swing.*;
-import java.util.List;
-import dominio.cliente.Cliente;
 
 public class ClienteView {
     private JPanel rootPanel;
@@ -14,11 +12,13 @@ public class ClienteView {
     private JTextField txtDni;
     private JButton btnGuardar;
     private JButton btnCancelar;
+    private JButton btnEliminar;
 
     public JPanel getRootPanel() { return rootPanel; }
     public JTable getTablaClientes() { return tablaClientes; }
     public JButton getBtnGuardar() { return btnGuardar; }
     public JButton getBtnCancelar() { return btnCancelar; }
+    public JButton getBtnEliminar() { return btnEliminar; }
 
     // Getters corregidos
     public String getNombre() { return txtNombre.getText(); }
@@ -42,6 +42,7 @@ public class ClienteView {
         txtEmail.setText("");
         txtEdad.setText("");
         txtTelefono.setText("");
+        txtDni.setText("");
     }
 
     public void mostrarMensaje(String mensaje) {

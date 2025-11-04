@@ -18,5 +18,19 @@ public class Mecanico extends Empleado {
         return base * nivel.factor();
     }
 
-    // getters/setters mínimos si los necesitás
+    public String getEspecialidad() {
+        return especialidad;
+    }
+
+    public Nivel  getNivel() {
+        return nivel;
+    }
+
+    public void setNivel(Nivel nivel) {
+        this.nivel = nivel;
+    }
+
+    public void setEspecialidad(String especialidad) {
+        this.especialidad = especialidad;
+    }
 }

@@ -10,25 +10,22 @@ public class Vehiculo {
     private String modelo;
     private String patente;
     private int anio;
-    private String vin;
     private List<OrdenDeTrabajo> ordenesDeTrabajo;
     private int dniCliente;
 
-    public Vehiculo(String marca, String modelo, String patente, int anio, String vin) {
+    public Vehiculo(String marca, String modelo, String patente, int anio) {
         this.marca = marca;
         this.modelo = modelo;
         this.patente = patente;
         this.anio = anio;
-        this.vin = vin;
         this.ordenesDeTrabajo = new ArrayList<>();
     }
 
-    public Vehiculo(String marca, String modelo, String patente, int anio, String vin, int dniCliente) {
+    public Vehiculo(String marca, String modelo, String patente, int anio, int dniCliente) {
         this.marca = marca;
         this.modelo = modelo;
         this.patente = patente;
         this.anio = anio;
-        this.vin = vin;
         this.ordenesDeTrabajo = new ArrayList<>();
         this.dniCliente = dniCliente;
     }
@@ -63,14 +60,6 @@ public class Vehiculo {
 
     public void setAnio(int anio) {
         this.anio = anio;
-    }
-
-    public String getVin() {
-        return vin;
-    }
-
-    public void setVin(String vin) {
-        this.vin = vin;
     }
 
     public List<OrdenDeTrabajo> getOrdenesDeTrabajo() {

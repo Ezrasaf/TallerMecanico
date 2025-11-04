@@ -68,20 +68,6 @@ public class RepoVehiculosArchivo implements RepositorioVehiculos {
     }
 
     @Override
-    public Optional<Vehiculo> buscarPorPatente(String patente) {
-        try (BufferedReader br = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            return br.lines()
-                    .map(this::parse)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .filter(v -> v.getPatente().equalsIgnoreCase(patente))
-                    .findFirst();
-        } catch (IOException e) {
-            throw new RuntimeException("Error leyendo archivo de vehiculos", e);
-        }
-    }
-
-    @Override
     public List<Vehiculo> listar() {
         try (BufferedReader br = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             return br.lines()
@@ -94,13 +80,44 @@ public class RepoVehiculosArchivo implements RepositorioVehiculos {
         }
     }
 
+    @Override
+    public synchronized void eliminar(String patente) {
+        List<Vehiculo> vehiculos = listar()
+                .stream()
+                .filter(v -> !v.getPatente().equalsIgnoreCase(patente))
+                .collect(Collectors.toList());
+        actualizar(vehiculos);
+    }
+
+    @Override
+    public synchronized void actualizar(List<Vehiculo> vehiculos) {
+        try (BufferedWriter bw = Files.newBufferedWriter(file, StandardCharsets.UTF_8,
+                StandardOpenOption.TRUNCATE_EXISTING)) {
+            for (Vehiculo v : vehiculos) {
+                bw.write(format(v));
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            throw new RuntimeException("Error actualizando archivo de vehículos", e);
+        }
+    }
+
+    @Override
+    public synchronized void eliminarPorCliente(int dniCliente) {
+        List<Vehiculo> vehiculos = listar()
+                .stream()
+                .filter(v -> v.getDniCliente() != dniCliente)
+                .collect(Collectors.toList());
+        actualizar(vehiculos);
+    }
+
     private String format(Vehiculo v) {
         return String.join(";",
                 escape(v.getPatente()),
                 escape(v.getMarca()),
                 escape(v.getModelo()),
                 String.valueOf(v.getAnio()),
-                escape(v.getVin() == null ? "" : v.getVin()),
                 String.valueOf(v.getDniCliente())
         );
     }
@@ -114,9 +131,8 @@ public class RepoVehiculosArchivo implements RepositorioVehiculos {
             String marca = unescape(parts[1]);
             String modelo = unescape(parts[2]);
             int anio = Integer.parseInt(parts[3]);
-            String vin = unescape(parts[4]);
-            int dniCliente = Integer.parseInt(parts[5]);
-            Vehiculo v = new Vehiculo(marca, modelo, patente, anio, vin, dniCliente);
+            int dniCliente = Integer.parseInt(parts[4]);
+            Vehiculo v = new Vehiculo(marca, modelo, patente, anio, dniCliente);
             return Optional.of(v);
         } catch (Exception e) {
             return Optional.empty();

@@ -11,7 +11,6 @@ public class DashboardView {
     private JButton btnVehiculos;
     private JButton btnOrdenes;
     private JButton btnEmpleados;
-    private JButton btnFacturacion;
     private JLabel lblTitulo;
     public JPanel getRootPanel() { return rootPanel; }
     public JPanel getContentPanel() { return contentPanel; }
@@ -20,7 +19,6 @@ public class DashboardView {
     public JButton getBtnVehiculos() { return btnVehiculos; }
     public JButton getBtnOrdenes() { return btnOrdenes; }
     public JButton getBtnEmpleados() { return btnEmpleados; }
-    public JButton getBtnFacturacion() { return btnFacturacion; }
 
     public DashboardView() {
         lblTitulo.setText("Taller Mecánico - Panel Principal");

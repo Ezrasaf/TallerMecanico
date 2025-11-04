@@ -1,31 +1,14 @@
 package Datos.archivo;
 
-import Datos.RepositorioOrdenes;
-import dominio.orden.OrdenDeTrabajo;
-import dominio.empleado.Mecanico;
-import dominio.empleado.Nivel;
-import dominio.orden.EstadoOT;
-import dominio.orden.Prioridad;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
+import dominio.orden.*;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Repositorio de Ordenes en CSV simple.
- * Formato: numeroOrden;fechaISO;estado;diagnostico;prioridad;asignadoLegajo;horasTrabajadas
- */
-public class RepoOrdenesArchivo implements RepositorioOrdenes {
+public class RepoOrdenesArchivo {
     private final Path file;
 
     public RepoOrdenesArchivo(String filename) {
@@ -35,109 +18,102 @@ public class RepoOrdenesArchivo implements RepositorioOrdenes {
             if (parent != null && Files.notExists(parent)) Files.createDirectories(parent);
             if (Files.notExists(this.file)) Files.createFile(this.file);
         } catch (IOException e) {
-            throw new RuntimeException("No se pudo inicializar archivo de ordenes: " + filename, e);
+            throw new RuntimeException("No se pudo inicializar el archivo: " + filename, e);
         }
     }
 
-    @Override
-    public synchronized void guardar(OrdenDeTrabajo o) {
-        List<String> lines = new ArrayList<>();
-        try (BufferedReader br = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            lines = br.lines().collect(Collectors.toList());
-        } catch (IOException e) {
-            lines = new ArrayList<>();
-        }
+    public synchronized void guardar(OrdenDeTrabajo orden) {
+        List<OrdenDeTrabajo> ordenes = listar();
+        boolean reemplazada = false;
 
-        String key = String.valueOf(o.getNumeroOrden());
-        String record = format(o);
-        boolean replaced = false;
-        for (int i = 0; i < lines.size(); i++) {
-            String ln = lines.get(i);
-            if (ln.startsWith(key + ";")) {
-                lines.set(i, record);
-                replaced = true;
+        for (int i = 0; i < ordenes.size(); i++) {
+            if (ordenes.get(i).getNumeroOrden() == orden.getNumeroOrden()) {
+                ordenes.set(i, orden);
+                reemplazada = true;
                 break;
             }
         }
-        if (!replaced) lines.add(record);
 
-        try (BufferedWriter bw = Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING)) {
-            for (String l : lines) {
-                bw.write(l);
+        if (!reemplazada) ordenes.add(orden);
+        actualizar(ordenes);
+    }
+
+    public synchronized void eliminar(int numeroOrden) {
+        List<OrdenDeTrabajo> ordenes = listar().stream()
+                .filter(o -> o.getNumeroOrden() != numeroOrden)
+                .collect(Collectors.toList());
+        actualizar(ordenes);
+    }
+
+    private synchronized void actualizar(List<OrdenDeTrabajo> ordenes) {
+        try (BufferedWriter bw = Files.newBufferedWriter(file, StandardCharsets.UTF_8,
+                StandardOpenOption.TRUNCATE_EXISTING)) {
+            for (OrdenDeTrabajo o : ordenes) {
+                bw.write(format(o));
                 bw.newLine();
             }
-            bw.flush();
         } catch (IOException e) {
-            throw new RuntimeException("Error escribiendo archivo de ordenes", e);
+            throw new RuntimeException("Error actualizando CSV de órdenes", e);
         }
     }
 
-    @Override
-    public Optional<OrdenDeTrabajo> buscarPorId(int numeroOrden) {
-        try (BufferedReader br = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            return br.lines()
-                    .map(this::parse)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .filter(o -> o.getNumeroOrden() == numeroOrden)
-                    .findFirst();
-        } catch (IOException e) {
-            throw new RuntimeException("Error leyendo archivo de ordenes", e);
-        }
-    }
-
-    @Override
     public List<OrdenDeTrabajo> listar() {
+        if (!Files.exists(file)) return new ArrayList<>();
+
         try (BufferedReader br = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            return br.lines()
+            List<OrdenDeTrabajo> ordenes = br.lines()
                     .map(this::parse)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .collect(Collectors.toList());
+
+            System.out.println("Ordenes leídas del archivo: " + ordenes.size());
+            return ordenes;
         } catch (IOException e) {
-            throw new RuntimeException("Error leyendo archivo de ordenes", e);
+            e.printStackTrace();
+            return new ArrayList<>();
         }
     }
 
     private String format(OrdenDeTrabajo o) {
-        String asignadoLegajo = o.getAsignadoA() == null ? "" : String.valueOf(o.getAsignadoA().getLegajo());
         return String.join(";",
                 String.valueOf(o.getNumeroOrden()),
                 o.getFechaIngreso().toString(),
                 o.getEstado().name(),
-                escape(o.getDiagnostico() == null ? "" : o.getDiagnostico()),
+                o.getDiagnostico(),
                 o.getPrioridad().name(),
-                asignadoLegajo,
+                String.valueOf(o.getLegajoEmpleado()),
                 String.valueOf(o.getHorasTrabajadas())
         );
     }
 
     private Optional<OrdenDeTrabajo> parse(String line) {
-        if (line == null || line.trim().isEmpty()) return Optional.empty();
-        String[] parts = line.split(";");
-        if (parts.length < 7) return Optional.empty();
         try {
-            int numero = Integer.parseInt(parts[0]);
-            LocalDate fecha = LocalDate.parse(parts[1]);
-            EstadoOT estado = EstadoOT.valueOf(parts[2]);
-            String diagnostico = unescape(parts[3]);
-            Prioridad prioridad = Prioridad.valueOf(parts[4]);
-            String legajoStr = parts[5];
-            int legajo = legajoStr == null || legajoStr.isEmpty() ? 0 : Integer.parseInt(legajoStr);
-            float horas = Float.parseFloat(parts[6]);
-            Mecanico mecanico = legajo == 0 ? new Mecanico(0, "", 0.0, Nivel.JUNIOR) : new Mecanico(legajo, "", 0.0, Nivel.JUNIOR);
-            OrdenDeTrabajo o = new OrdenDeTrabajo(numero, fecha, estado, diagnostico, prioridad, mecanico, horas);
-            return Optional.of(o);
+            String[] p = line.split(";");
+            if (p.length < 7) return Optional.empty();
+
+            int nro = Integer.parseInt(p[0]);
+            LocalDate fecha = LocalDate.parse(p[1]);
+
+            // 👇 Esta parte es la clave: asegura que el enum se lea bien
+            EstadoOT estado;
+            try {
+                estado = EstadoOT.valueOf(p[2].toUpperCase());
+            } catch (Exception e) {
+                // fallback si el texto es "Abierta" o similar
+                estado = EstadoOT.ABIERTA;
+            }
+
+            String diag = p[3];
+            Prioridad pr = Prioridad.valueOf(p[4].toUpperCase());
+            int legajo = Integer.parseInt(p[5]);
+            float horas = Float.parseFloat(p[6]);
+
+            return Optional.of(new OrdenDeTrabajo(nro, fecha, estado, diag, pr, legajo, horas));
         } catch (Exception e) {
+            System.err.println("Error parseando línea: " + line);
+            e.printStackTrace();
             return Optional.empty();
         }
-    }
-
-    private String escape(String s) {
-        return s.replace("\\", "\\\\").replace(";", "\\;");
-    }
-
-    private String unescape(String s) {
-        return s.replace("\\;", ";").replace("\\\\", "\\");
     }
 }

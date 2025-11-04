@@ -6,7 +6,8 @@ import dominio.cliente.Cliente;
 
 public interface RepositorioClientes {
     void guardar(Cliente c);
-    Optional<Cliente> buscarPorId(String dni);
     List<Cliente> listar();
     void actualizar(List<Cliente> clientes);
+    void eliminar(int dni);
+
 }

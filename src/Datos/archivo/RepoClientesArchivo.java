@@ -1,5 +1,6 @@
 package Datos.archivo;
 
+import Datos.Repositorio;
 import Datos.RepositorioClientes;
 import dominio.cliente.Cliente;
 import dominio.vehiculo.Vehiculo;
@@ -74,20 +75,6 @@ public class RepoClientesArchivo implements RepositorioClientes {
     }
 
     @Override
-    public Optional<Cliente> buscarPorId(String dni) {
-        try (BufferedReader br = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            return br.lines()
-                    .map(this::parse)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .filter(c -> String.valueOf(c.getId()).equals(dni))
-                    .findFirst();
-        } catch (IOException e) {
-            throw new RuntimeException("Error leyendo archivo de clientes", e);
-        }
-    }
-
-    @Override
     public List<Cliente> listar() {
         try (BufferedReader br = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             return br.lines()
@@ -100,6 +87,16 @@ public class RepoClientesArchivo implements RepositorioClientes {
         }
     }
 
+    @Override
+    public synchronized void eliminar(int dni) {
+        List<Cliente> clientes = listar()
+                .stream()
+                .filter(c -> c.getDni() != dni)
+                .collect(Collectors.toList());
+        actualizar(clientes);
+    }
+
+    @Override
     public void actualizar(List<Cliente> clientes) {
         try (BufferedWriter bw = Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING)) {
             for (Cliente c : clientes) {
@@ -125,6 +122,7 @@ public class RepoClientesArchivo implements RepositorioClientes {
                 String.valueOf(c.getEdad()),
                 String.valueOf(c.getTelefono()),
                 escape(c.getEmail() == null ? "" : c.getEmail()),
+                String.valueOf(c.getDni()),
                 escape(vehiculosTexto)
         );
     }
@@ -141,7 +139,8 @@ public class RepoClientesArchivo implements RepositorioClientes {
             int edad = Integer.parseInt(parts[2]);
             int telefono = Integer.parseInt(parts[3]);
             String email = unescape(parts[4]);
-            Cliente c = new Cliente(nombre, edad, telefono, email, id);
+            int dni = Integer.parseInt(parts[5]);
+            Cliente c = new Cliente(nombre, edad, telefono, email, dni);
 
             if (parts.length >= 6 && !parts[5].isEmpty()) {
                 String vehiculosTexto = unescape(parts[5]);
@@ -153,8 +152,7 @@ public class RepoClientesArchivo implements RepositorioClientes {
                         String modelo = unescape(data[1]);
                         String patente = unescape(data[2]);
                         int anio = Integer.parseInt(data[3]);
-                        String vin = unescape(data[4]);
-                        c.agregarVehiculo(new Vehiculo(marca, modelo, patente, anio, vin));
+                        c.agregarVehiculo(new Vehiculo(marca, modelo, patente, anio));
                     }
                 }
             }

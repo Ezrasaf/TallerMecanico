@@ -2,11 +2,8 @@ package controlador;
 
 import Datos.RepositorioClientes;
 import Datos.RepositorioVehiculos;
-import Datos.archivo.RepoClientesArchivo;
-import Datos.archivo.RepoVehiculosArchivo;
-import vista.ClienteView;
-import vista.DashboardView;
-import vista.VehiculoView;
+import Datos.archivo.*;
+import vista.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,20 +41,33 @@ public class DashboardControlador {
         // Configura el layout principal
         view.getContentPanel().setLayout(layout);
 
-        ClienteView clienteView = new ClienteView();
-        RepositorioClientes repoClientes = new RepoClientesArchivo("clientes.csv");
-        new ClienteController(clienteView, repoClientes);
+        RepositorioClientes repoClientes = new RepoClientesArchivo("data/clientes.csv");
+        RepositorioVehiculos repoVehiculos = new RepoVehiculosArchivo("data/vehiculos.csv");
+        RepoEmpleadosArchivo repoEmpleados = new RepoEmpleadosArchivo("data/empleados.csv");
+        RepoOrdenesArchivo repoOrdenes = new RepoOrdenesArchivo("data/ordenes.csv");
+        RepoRepuestosArchivo repoRepuestos = new RepoRepuestosArchivo("data/repuestos.csv");
+        RepoServiciosArchivo repoServicios = new RepoServiciosArchivo("data/servicios.csv");
 
+        OrdenView ordenView = new OrdenView();
+
+        ClienteView clienteView = new ClienteView();
         VehiculoView vehiculoView = new VehiculoView();
-        RepositorioVehiculos repoVehiculos = new RepoVehiculosArchivo("vehiculos.csv");
-        new VehiculoController(vehiculoView, repoVehiculos);
+
+        ClienteController clienteController = new ClienteController(clienteView, repoClientes, repoVehiculos);
+        VehiculoController vehiculoController = new VehiculoController(vehiculoView, repoVehiculos, clienteController);
+        OrdenController ordenController = new OrdenController(ordenView, repoOrdenes, repoRepuestos, repoServicios);
+        clienteController.setVehiculoController(vehiculoController);
+
+
+        EmpleadoView empleadoView = new EmpleadoView();
+        new EmpleadoController(empleadoView, repoEmpleados);
 
 
         // Por ahora agregamos paneles placeholder hasta crear las vistas reales
         modulos.put("clientes", clienteView.getRootPanel());
         modulos.put("vehiculos", vehiculoView.getRootPanel());
-        modulos.put("ordenes", crearPlaceholder("Órdenes de Trabajo"));
-        modulos.put("empleados", crearPlaceholder("Gestión de Empleados"));
+        modulos.put("ordenes", ordenView.getRootPanel());
+        modulos.put("empleados", empleadoView.getRootPanel());
         modulos.put("facturacion", crearPlaceholder("Facturación y Pagos"));
 
         // Añadimos los paneles al contentPanel
@@ -68,8 +78,6 @@ public class DashboardControlador {
         view.getBtnVehiculos().addActionListener(e -> mostrarModulo("vehiculos"));
         view.getBtnOrdenes().addActionListener(e -> mostrarModulo("ordenes"));
         view.getBtnEmpleados().addActionListener(e -> mostrarModulo("empleados"));
-        view.getBtnFacturacion().addActionListener(e -> mostrarModulo("facturacion"));
-
         // Mostramos la vista por defecto
         layout.show(view.getContentPanel(), "clientes");
     }

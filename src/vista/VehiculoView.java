@@ -12,12 +12,15 @@ public class VehiculoView {
     private JTextField txtCliente;
     private JButton btnGuardar;
     private JButton btnCancelar;
+    private JButton btnEliminar;
+
 
     public JPanel getRootPanel() { return rootPanel; }
     public JTable getTablaVehiculos() { return tablaVehiculos; }
 
     public JButton getBtnGuardar() { return btnGuardar; }
     public JButton getBtnCancelar() { return btnCancelar; }
+    public JButton getBtnEliminar() { return btnEliminar; }
 
     public String getPatente() { return txtPatente.getText(); }
     public String getMarca() { return txtMarca.getText(); }
