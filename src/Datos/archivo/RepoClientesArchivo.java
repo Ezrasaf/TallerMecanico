@@ -1,11 +1,10 @@
-package persistencia.archivo;
+package Datos.archivo;
 
-import persistencia.RepositorioClientes;
+import Datos.RepositorioClientes;
 import dominio.cliente.Cliente;
+import dominio.vehiculo.Vehiculo;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -101,33 +100,71 @@ public class RepoClientesArchivo implements RepositorioClientes {
         }
     }
 
+    public void actualizar(List<Cliente> clientes) {
+        try (BufferedWriter bw = Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING)) {
+            for (Cliente c : clientes) {
+                bw.write(format(c));
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            throw new RuntimeException("Error actualizando archivo de clientes", e);
+        }
+    }
+
     private String format(Cliente c) {
-        // id;nombre;edad;telefono;email
+        String vehiculosTexto = c.getVehiculos().isEmpty()
+                ? ""
+                : c.getVehiculos().stream()
+                .map(v -> v.getMarca() + "-" + v.getModelo() + "-" + v.getPatente())
+                .collect(Collectors.joining("|"));
+
         return String.join(";",
                 String.valueOf(c.getId()),
                 escape(c.getNombre()),
                 String.valueOf(c.getEdad()),
                 String.valueOf(c.getTelefono()),
-                escape(c.getEmail() == null ? "" : c.getEmail())
+                escape(c.getEmail() == null ? "" : c.getEmail()),
+                escape(vehiculosTexto)
         );
     }
+
 
     private Optional<Cliente> parse(String line) {
         if (line == null || line.trim().isEmpty()) return Optional.empty();
         String[] parts = line.split(";");
         if (parts.length < 5) return Optional.empty();
+
         try {
             int id = Integer.parseInt(parts[0]);
             String nombre = unescape(parts[1]);
             int edad = Integer.parseInt(parts[2]);
             int telefono = Integer.parseInt(parts[3]);
             String email = unescape(parts[4]);
-            Cliente c = new Cliente(nombre, edad, telefono, id, email);
+            Cliente c = new Cliente(nombre, edad, telefono, email, id);
+
+            if (parts.length >= 6 && !parts[5].isEmpty()) {
+                String vehiculosTexto = unescape(parts[5]);
+                String[] vehiculosArray = vehiculosTexto.split("\\|");
+                for (String vtxt : vehiculosArray) {
+                    String[] data = vtxt.split("-");
+                    if (data.length == 5) {
+                        String marca = unescape(data[0]);
+                        String modelo = unescape(data[1]);
+                        String patente = unescape(data[2]);
+                        int anio = Integer.parseInt(data[3]);
+                        String vin = unescape(data[4]);
+                        c.agregarVehiculo(new Vehiculo(marca, modelo, patente, anio, vin));
+                    }
+                }
+            }
+
             return Optional.of(c);
         } catch (Exception e) {
             return Optional.empty();
         }
     }
+
 
     // simple escaping to avoid semicolons in text
     private String escape(String s) {

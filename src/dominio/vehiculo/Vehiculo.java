@@ -6,72 +6,90 @@ import java.util.List;
 import dominio.orden.OrdenDeTrabajo;
 
 public class Vehiculo {
-	private String marca;
-	private String modelo;
-	private String patente;
-	private int anio;
-	private String vin;
-	private List<OrdenDeTrabajo> ordenesDeTrabajo;
+    private String marca;
+    private String modelo;
+    private String patente;
+    private int anio;
+    private String vin;
+    private List<OrdenDeTrabajo> ordenesDeTrabajo;
+    private int dniCliente;
 
-	public Vehiculo(String marca, String modelo, String patente, int anio, String vin) {
-		this.marca = marca;
-		this.modelo = modelo;
-		this.patente = patente;
-		this.anio = anio;
-		this.vin = vin;
-		this.ordenesDeTrabajo = new ArrayList<>();
-	}
+    public Vehiculo(String marca, String modelo, String patente, int anio, String vin) {
+        this.marca = marca;
+        this.modelo = modelo;
+        this.patente = patente;
+        this.anio = anio;
+        this.vin = vin;
+        this.ordenesDeTrabajo = new ArrayList<>();
+    }
 
-	public String getMarca() {
-		return marca;
-	}
+    public Vehiculo(String marca, String modelo, String patente, int anio, String vin, int dniCliente) {
+        this.marca = marca;
+        this.modelo = modelo;
+        this.patente = patente;
+        this.anio = anio;
+        this.vin = vin;
+        this.ordenesDeTrabajo = new ArrayList<>();
+        this.dniCliente = dniCliente;
+    }
 
-	public String getModelo() {
-		return modelo;
-	}
+    public String getMarca() {
+        return marca;
+    }
 
-	public String getPatente() {
-		return patente;
-	}
+    public String getModelo() {
+        return modelo;
+    }
 
-	public void setMarca(String marca) {
-		this.marca = marca;
-	}
+    public String getPatente() {
+        return patente;
+    }
 
-	public void setModelo(String modelo) {
-		this.modelo = modelo;
-	}
+    public void setMarca(String marca) {
+        this.marca = marca;
+    }
 
-	public void setPatente(String patente) {
-		this.patente = patente;
-	}
+    public void setModelo(String modelo) {
+        this.modelo = modelo;
+    }
 
-	public int getAnio() {
-		return anio;
-	}
+    public void setPatente(String patente) {
+        this.patente = patente;
+    }
 
-	public void setAnio(int anio) {
-		this.anio = anio;
-	}
+    public int getAnio() {
+        return anio;
+    }
 
-	public String getVin() {
-		return vin;
-	}
+    public void setAnio(int anio) {
+        this.anio = anio;
+    }
 
-	public void setVin(String vin) {
-		this.vin = vin;
-	}
+    public String getVin() {
+        return vin;
+    }
 
-	public List<OrdenDeTrabajo> getOrdenesDeTrabajo() {
-		return ordenesDeTrabajo;
-	}
+    public void setVin(String vin) {
+        this.vin = vin;
+    }
 
-	public void agregarOrdenDeTrabajo(OrdenDeTrabajo orden) {
-		this.ordenesDeTrabajo.add(orden);
-	}
+    public List<OrdenDeTrabajo> getOrdenesDeTrabajo() {
+        return ordenesDeTrabajo;
+    }
 
-	public void eliminarOrdenDeTrabajo(OrdenDeTrabajo orden) {
-		this.ordenesDeTrabajo.remove(orden);
-	}
+    public void agregarOrdenDeTrabajo(OrdenDeTrabajo orden) {
+        this.ordenesDeTrabajo.add(orden);
+    }
 
+    public void eliminarOrdenDeTrabajo(OrdenDeTrabajo orden) {
+        this.ordenesDeTrabajo.remove(orden);
+    }
+
+    public int getDniCliente() {
+        return dniCliente;
+    }
+
+    public void setDniCliente(int dniCliente) {
+        this.dniCliente = dniCliente;
+    }
 }

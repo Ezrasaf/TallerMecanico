@@ -1,6 +1,6 @@
-package persistencia.archivo;
+package Datos.archivo;
 
-import persistencia.RepositorioVehiculos;
+import Datos.RepositorioVehiculos;
 import dominio.vehiculo.Vehiculo;
 
 import java.io.BufferedReader;
@@ -100,7 +100,8 @@ public class RepoVehiculosArchivo implements RepositorioVehiculos {
                 escape(v.getMarca()),
                 escape(v.getModelo()),
                 String.valueOf(v.getAnio()),
-                escape(v.getVin() == null ? "" : v.getVin())
+                escape(v.getVin() == null ? "" : v.getVin()),
+                String.valueOf(v.getDniCliente())
         );
     }
 
@@ -114,7 +115,8 @@ public class RepoVehiculosArchivo implements RepositorioVehiculos {
             String modelo = unescape(parts[2]);
             int anio = Integer.parseInt(parts[3]);
             String vin = unescape(parts[4]);
-            Vehiculo v = new Vehiculo(marca, modelo, patente, anio, vin);
+            int dniCliente = Integer.parseInt(parts[5]);
+            Vehiculo v = new Vehiculo(marca, modelo, patente, anio, vin, dniCliente);
             return Optional.of(v);
         } catch (Exception e) {
             return Optional.empty();

@@ -1,5 +1,9 @@
 package controlador;
 
+import Datos.RepositorioClientes;
+import Datos.RepositorioVehiculos;
+import Datos.archivo.RepoClientesArchivo;
+import Datos.archivo.RepoVehiculosArchivo;
 import vista.ClienteView;
 import vista.DashboardView;
 import vista.VehiculoView;
@@ -41,10 +45,12 @@ public class DashboardControlador {
         view.getContentPanel().setLayout(layout);
 
         ClienteView clienteView = new ClienteView();
-        new ClienteController(clienteView);
+        RepositorioClientes repoClientes = new RepoClientesArchivo("clientes.csv");
+        new ClienteController(clienteView, repoClientes);
 
         VehiculoView vehiculoView = new VehiculoView();
-        new VehiculoController(vehiculoView);
+        RepositorioVehiculos repoVehiculos = new RepoVehiculosArchivo("vehiculos.csv");
+        new VehiculoController(vehiculoView, repoVehiculos);
 
 
         // Por ahora agregamos paneles placeholder hasta crear las vistas reales

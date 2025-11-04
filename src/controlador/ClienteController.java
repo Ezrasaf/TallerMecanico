@@ -2,22 +2,24 @@ package controlador;
 
 import vista.ClienteView;
 import dominio.cliente.Cliente;
-
-import javax.swing.*;
+import dominio.vehiculo.Vehiculo;
+import Datos.RepositorioClientes;
 import javax.swing.table.DefaultTableModel;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ClienteController {
     private final ClienteView view;
-    private final List<Cliente> clientes = new ArrayList<>();
+    private final RepositorioClientes repo;
     private final DefaultTableModel model;
+    private List<Cliente> clientes; // ← guardamos la lista en memoria
 
-    public ClienteController(ClienteView view) {
+    public ClienteController(ClienteView view, RepositorioClientes repo) {
         this.view = view;
-        this.model = new DefaultTableModel(new Object[]{"Nombre", "Email", "Edad", "Teléfono"}, 0);
+        this.repo = repo;
+        this.model = new DefaultTableModel(new Object[]{"Nombre", "Email", "Edad", "Teléfono", "DNI"}, 0);
         view.getTablaClientes().setModel(model);
         inicializar();
+        cargarClientes();
     }
 
     private void inicializar() {
@@ -25,23 +27,63 @@ public class ClienteController {
         view.getBtnCancelar().addActionListener(e -> view.limpiarFormulario());
     }
 
-    private void guardarCliente() {
-        String nombre = view.getNombre();
-        String email = view.getEmail();
-        int edad = view.getEdad();
-        int telefono = view.getTelefono();
+    private void cargarClientes() {
+        clientes = repo.listar();
+        model.setRowCount(0);
 
-        if (nombre.isEmpty() || email.isEmpty() || edad <= 0) {
-            view.mostrarMensaje("Complete todos los campos correctamente.");
-            return;
+        for (Cliente c : clientes) {
+            String vehiculosTexto = c.getVehiculos().isEmpty()
+                    ? "Sin vehículos"
+                    : String.join(", ", c.getVehiculos().stream().map(Vehiculo::toString).toList());
+
+            model.addRow(new Object[]{
+                    c.getNombre(),
+                    c.getEmail(),
+                    c.getEdad(),
+                    c.getTelefono(),
+                    c.getDni(),
+                    vehiculosTexto
+            });
         }
+    }
 
-        Cliente cliente = new Cliente(nombre, edad, telefono, email);
-        clientes.add(cliente);
-        model.addRow(new Object[]{nombre, email, edad, telefono});
+    private void guardarCliente() {
+        Cliente c = new Cliente(
+                view.getNombre(),
+                view.getEdad(),
+                view.getTelefono(),
+                view.getEmail(),
+                view.getDni()
+        );
+
+        repo.guardar(c);
+        clientes.add(c); // ← lo agregamos a la lista en memoria también
+        model.addRow(new Object[]{c.getNombre(), c.getEmail(), c.getEdad(), c.getTelefono(), c.getDni()});
         view.mostrarMensaje("Cliente guardado correctamente.");
         view.limpiarFormulario();
     }
 
+    public Cliente buscarClientePorDni(int dni) {
+        for (Cliente c : clientes) {
+            if (c.getDni() == dni) { // comparar Strings correctamente
+                return c;
+            }
+        }
+        return null;
+    }
 
+    public void guardarVehiculo(Vehiculo v, int dni) {
+        Cliente cliente = buscarClientePorDni(dni);
+
+        if (cliente == null) {
+            view.mostrarMensaje("No se encontró un cliente con ese DNI.");
+            return;
+        }
+
+        cliente.agregarVehiculo(v);
+        repo.actualizar(clientes);
+        cargarClientes();
+
+        view.mostrarMensaje("Vehículo agregado correctamente al cliente " + cliente.getNombre());
+    }
 }

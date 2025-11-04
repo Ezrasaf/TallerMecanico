@@ -11,6 +11,7 @@ public class ClienteView {
     private JTextField txtEmail;
     private JTextField txtEdad;
     private JTextField txtTelefono;
+    private JTextField txtDni;
     private JButton btnGuardar;
     private JButton btnCancelar;
 
@@ -28,6 +29,11 @@ public class ClienteView {
     }
     public int getTelefono() {
         try { return Integer.parseInt(txtTelefono.getText()); }
+        catch (NumberFormatException e) { return 0; }
+    }
+
+    public int getDni() {
+        try { return Integer.parseInt(txtDni.getText()); }
         catch (NumberFormatException e) { return 0; }
     }
 

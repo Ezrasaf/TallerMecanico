@@ -2,21 +2,22 @@ package controlador;
 
 import vista.VehiculoView;
 import dominio.vehiculo.Vehiculo;
-
+import Datos.RepositorioVehiculos;
 import javax.swing.table.DefaultTableModel;
-import java.util.ArrayList;
 import java.util.List;
 
 public class VehiculoController {
     private final VehiculoView view;
-    private final List<Vehiculo> vehiculos = new ArrayList<>();
+    private final RepositorioVehiculos repo;
     private final DefaultTableModel model;
 
-    public VehiculoController(VehiculoView view) {
+    public VehiculoController(VehiculoView view, RepositorioVehiculos repo) {
         this.view = view;
+        this.repo = repo;
         this.model = new DefaultTableModel(new Object[]{"Patente", "Marca", "Modelo", "Año", "Cliente"}, 0);
         view.getTablaVehiculos().setModel(model);
         inicializar();
+        cargarVehiculos();
     }
 
     private void inicializar() {
@@ -24,33 +25,24 @@ public class VehiculoController {
         view.getBtnCancelar().addActionListener(e -> view.limpiarFormulario());
     }
 
-    private void guardarVehiculo() {
-        String patente = view.getPatente();
-        String marca = view.getMarca();
-        String modelo = view.getModelo();
-        int anio = view.getAnio();
-        String cliente = view.getCliente();
-
-        if (patente.isEmpty() || marca.isEmpty() || modelo.isEmpty() || anio <= 0) {
-            view.mostrarMensaje("Complete todos los campos correctamente.");
-            return;
+    private void cargarVehiculos() {
+        List<Vehiculo> vehiculos = repo.listar();
+        for (Vehiculo v : vehiculos) {
+            model.addRow(new Object[]{v.getPatente(), v.getMarca(), v.getModelo(), v.getAnio(), v.getDniCliente()});
         }
-
-        Vehiculo vehiculo = new Vehiculo(patente, marca, modelo, anio, cliente);
-        vehiculos.add(vehiculo);
-        model.addRow(new Object[]{patente, marca, modelo, anio, cliente});
-        view.mostrarMensaje("Vehículo guardado correctamente.");
-        view.limpiarFormulario();
     }
 
-    private void eliminarVehiculo() {
-        int fila = view.getTablaVehiculos().getSelectedRow();
-        if (fila >= 0) {
-            vehiculos.remove(fila);
-            model.removeRow(fila);
-            view.mostrarMensaje("Vehículo eliminado.");
-        } else {
-            view.mostrarMensaje("Seleccione un vehículo para eliminar.");
-        }
+    private void guardarVehiculo() {
+        System.out.println(view.getCliente());
+        Vehiculo v = new Vehiculo(
+                view.getPatente(), view.getMarca(), view.getModelo(),
+                view.getAnio(), view.getCliente()
+        );
+        repo.guardar(v);
+        model.addRow(new Object[]{v.getPatente(), v.getMarca(), v.getModelo(), v.getAnio(), v.getDniCliente()});
+        view.mostrarMensaje("Vehículo guardado correctamente.");
+        view.limpiarFormulario();
+
+
     }
 }

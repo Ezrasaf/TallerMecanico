@@ -6,12 +6,14 @@ public abstract class Persona {
 	private String nombre;
 	private int edad;
 	private int telefono;
+    private int dni;
 
-	public Persona(String nombre, int edad, int telefono) {
+	public Persona(String nombre, int edad, int telefono, int dni) {
 		this.nombre = nombre;
 		this.edad = edad;
 		this.telefono = telefono;
         this.id = ++contador;
+        this.dni = dni;
     }
 
 	public String getNombre() {
@@ -45,5 +47,13 @@ public abstract class Persona {
 	public void setId(int id) {
 		this.id = id;
 	}
+
+    public int getDni() {
+        return dni;
+    }
+
+    public void setDni(int dni) {
+        this.dni = dni;
+    }
 
 }
