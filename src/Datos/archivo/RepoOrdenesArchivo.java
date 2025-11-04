@@ -1,5 +1,6 @@
 package Datos.archivo;
 
+import Datos.RepositorioOrdenes;
 import dominio.orden.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -8,7 +9,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RepoOrdenesArchivo {
+public class RepoOrdenesArchivo implements RepositorioOrdenes {
     private final Path file;
 
     public RepoOrdenesArchivo(String filename) {

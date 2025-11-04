@@ -1,0 +1,44 @@
+@startuml Seq_Registrar_Cliente_Vehiculo
+
+actor Usuario
+
+participant "ClienteView\n(src/vista/ClienteView.java)" as ClienteView
+participant "ClienteController\n(src/controlador/ClienteController.java)" as ClienteCtrl
+participant "RepoClientesArchivo\n(src/Datos/archivo/RepoClientesArchivo.java)" as RepoClientes
+participant "RepoVehiculosArchivo\n(src/Datos/archivo/RepoVehiculosArchivo.java)" as RepoVehiculos
+object "Cliente\n(src/dominio/cliente/Cliente.java)" as Cliente
+object "Vehiculo\n(src/dominio/vehiculo/Vehiculo.java)" as Vehiculo
+
+Usuario -> ClienteView : abrirFormulario()
+Usuario -> ClienteView : completarDatosCliente(datosCliente)
+Usuario -> ClienteView : completarDatosVehiculo(datosVehiculo)
+Usuario -> ClienteView : submitRegistro()
+ClienteView -> ClienteCtrl : crearClienteYVehiculo(datosCliente, datosVehiculo)
+activate ClienteCtrl
+
+ClienteCtrl -> Cliente : new Cliente(datosCliente)
+activate Cliente
+Cliente --> ClienteCtrl : clienteObj
+deactivate Cliente
+
+ClienteCtrl -> RepoClientes : save(clienteObj)
+activate RepoClientes
+RepoClientes --> ClienteCtrl : clientePersistido (id)
+deactivate RepoClientes
+
+ClienteCtrl -> Vehiculo : new Vehiculo(datosVehiculo, clientePersistido)
+activate Vehiculo
+Vehiculo --> ClienteCtrl : vehiculoObj
+deactivate Vehiculo
+
+ClienteCtrl -> RepoVehiculos : save(vehiculoObj)
+activate RepoVehiculos
+RepoVehiculos --> ClienteCtrl : vehiculoPersistido (id)
+deactivate RepoVehiculos
+
+ClienteCtrl -> ClienteView : mostrarConfirmacion(clientePersistido, vehiculoPersistido)
+deactivate ClienteCtrl
+
+Usuario <-- ClienteView : confirmación
+
+@enduml
