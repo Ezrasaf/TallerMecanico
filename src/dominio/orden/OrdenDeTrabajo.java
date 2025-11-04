@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import dominio.empleado.Mecanico;
+import dominio.empleado.Empleado;
 import dominio.excepciones.RepuestoDuplicadoException;
 
 public class OrdenDeTrabajo implements Facturable {
@@ -14,13 +14,13 @@ public class OrdenDeTrabajo implements Facturable {
 	private EstadoOT estado;
 	private String diagnostico;
 	private Prioridad prioridad;
-	private Mecanico asignadoA;
+	private Empleado asignadoA;
 	private List<ItemRepuesto> repuestos;
 	private List<LineaServicio> servicios;
 	private float horasTrabajadas;
 
 	public OrdenDeTrabajo(int numeroOrden, LocalDate fechaIngreso, EstadoOT estado, String diagnostico,
-			Prioridad prioridad, Mecanico asignadoA, float horasTrabajadas) {
+			Prioridad prioridad, Empleado asignadoA, float horasTrabajadas) {
 		this.numeroOrden = numeroOrden;
 		this.fechaIngreso = fechaIngreso;
 		this.estado = estado;
@@ -77,11 +77,11 @@ public class OrdenDeTrabajo implements Facturable {
 		this.prioridad = prioridad;
 	}
 
-	public Mecanico getAsignadoA() {
+	public Empleado getAsignadoA() {
 		return asignadoA;
 	}
 
-	public void setAsignadoA(Mecanico asignadoA) {
+	public void setAsignadoA(Empleado asignadoA) {
 		this.asignadoA = asignadoA;
 	}
 
