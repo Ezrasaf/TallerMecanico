@@ -68,6 +68,10 @@ public class ClienteController {
     }
 
     private void guardarCliente() {
+        if(view.getNombre() == "" || view.getEdad() <= 0 || view.getEmail() == "" ||  view.getTelefono() == 0 || view.getDni() <= 0) {
+            view.mostrarMensaje("Complete todos los campos correctamente.");
+            return;
+        }
         Cliente c = new Cliente(
                 view.getNombre(),
                 view.getEdad(),
