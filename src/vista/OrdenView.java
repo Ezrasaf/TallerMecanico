@@ -11,7 +11,6 @@ public class OrdenView {
     private JComboBox<String> comboEstado;
     private JTextField txtDiagnostico;
     private JComboBox<String> comboPrioridad;
-    private JTextField txtEmpleado;
     private JTextField txtHoras;
 
     // === Repuestos ===
@@ -37,6 +36,7 @@ public class OrdenView {
     private JButton btnEliminar;
     private JButton btnCancelar;
     private JTabbedPane tabbedPane1;
+    private JComboBox<String> comboEmpleado;
 
     public JPanel getRootPanel() { return rootPanel; }
 
@@ -60,7 +60,10 @@ public class OrdenView {
     public String getDiagnostico() { return txtDiagnostico.getText(); }
     public String getEstado() { return (String) comboEstado.getSelectedItem(); }
     public String getPrioridad() { return (String) comboPrioridad.getSelectedItem(); }
-    public String getEmpleado() { return  txtEmpleado.getText(); }
+    public String getEmpleado() {
+        Object sel = comboEmpleado.getSelectedItem();
+        return sel != null ? sel.toString() : "";
+    }
     public float getHoras() { return Float.parseFloat(txtHoras.getText()); }
 
     // --- Campos de repuesto ---
@@ -74,15 +77,33 @@ public class OrdenView {
     public double getHorasServicio() { return Double.parseDouble(txtHorasServicio.getText()); }
     public double getTarifaServicio() { return Double.parseDouble(txtTarifaServicio.getText()); }
 
+    // Número de orden (para que el controlador lo pueda setear)
+    public void setNumeroOrden(int numero) {
+        txtNumero.setText(String.valueOf(numero));
+    }
+
+    public void prepararNumeroOrden(int numero) {
+        setNumeroOrden(numero);
+        txtNumero.setEditable(false); // lo maneja el sistema, no el usuario
+    }
+    public void setFechaHoy() {
+        java.time.LocalDate hoy = java.time.LocalDate.now();
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        txtFecha.setText(hoy.format(fmt));
+    }
+
+    // --- Métodos auxiliares ---
     // --- Métodos auxiliares ---
     public void limpiarFormulario() {
-        txtNumero.setText("");
-        txtFecha.setText("");
+        // OJO: no tocamos txtNumero, porque lo setea el controlador
+        setFechaHoy();
         txtDiagnostico.setText("");
         txtHoras.setText("");
         comboEstado.setSelectedIndex(0);
         comboPrioridad.setSelectedIndex(0);
-        txtEmpleado.setText("");
+        if (comboEmpleado.getItemCount() > 0) {
+            comboEmpleado.setSelectedIndex(0);
+        }
 
         txtCodigoRepuesto.setText("");
         txtDescripcionRepuesto.setText("");
@@ -92,6 +113,29 @@ public class OrdenView {
         txtDescripcionServicio.setText("");
         txtHorasServicio.setText("");
         txtTarifaServicio.setText("");
+    }
+
+
+
+    // Cargar opciones en el combo
+    public void setEmpleados(java.util.List<String> empleados) {
+        comboEmpleado.removeAllItems();
+        if (empleados == null) return;
+        for (String e : empleados) {
+            comboEmpleado.addItem(e);
+        }
+    }
+
+    // Obtener el legajo del empleado seleccionado
+    public int getLegajoEmpleadoSeleccionado() {
+        Object sel = comboEmpleado.getSelectedItem();
+        if (sel == null) {
+            throw new IllegalStateException("Debe seleccionar un empleado.");
+        }
+        String texto = sel.toString();
+        // Vamos a usar el formato "123 - Juan Pérez - Motores"
+        String legajoStr = texto.split("-")[0].trim();
+        return Integer.parseInt(legajoStr);
     }
 
     public void mostrarMensaje(String msg) {

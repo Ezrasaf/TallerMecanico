@@ -76,6 +76,32 @@ public class RepoOrdenesArchivo implements RepositorioOrdenes {
         }
     }
 
+    public synchronized int proximoNumero() {
+        return listar().stream()
+                .mapToInt(OrdenDeTrabajo::getNumeroOrden)
+                .max()
+                .orElse(0) + 1;
+    }
+
+    @Override
+    public int contarOrdenesActivasPorEmpleado(int legajoEmpleado) {
+        return (int) listar().stream()
+                .filter(o -> o.getLegajoEmpleado() == legajoEmpleado)
+                .filter(o -> o.getEstado() == EstadoOT.ABIERTA || o.getEstado() == EstadoOT.EN_PROCESO)
+                .count();
+    }
+
+    public List<OrdenDeTrabajo> listarPorEmpleado(int legajo) {
+        List<OrdenDeTrabajo> resultado = new java.util.ArrayList<>();
+        for (OrdenDeTrabajo o : listar()) {   // reutilizás el listar() que ya tenés
+            if (o.getLegajoEmpleado() == legajo) {
+                resultado.add(o);
+            }
+        }
+        return resultado;
+    }
+
+
     private String format(OrdenDeTrabajo o) {
         return String.join(";",
                 String.valueOf(o.getNumeroOrden()),

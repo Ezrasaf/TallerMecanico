@@ -5,9 +5,14 @@ import Datos.archivo.RepoOrdenesArchivo;
 import Datos.archivo.RepoRepuestosArchivo;
 import Datos.archivo.RepoServiciosArchivo;
 import dominio.orden.*;
+import Datos.archivo.RepoEmpleadosArchivo;
+import dominio.empleado.Empleado;
+import dominio.empleado.Mecanico;
 
 import javax.swing.table.DefaultTableModel;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class OrdenController {
@@ -18,17 +23,21 @@ public class OrdenController {
     private final DefaultTableModel modelOrdenes;
     private final DefaultTableModel modelRepuestos;
     private final DefaultTableModel modelServicios;
+    private final RepoEmpleadosArchivo repoEmpleados;  // 🔹 nuevo
+
 
     public OrdenController(
             OrdenView view,
             RepoOrdenesArchivo repoOrdenes,
             RepoRepuestosArchivo repoRepuestos,
-            RepoServiciosArchivo repoServicios
+            RepoServiciosArchivo repoServicios,
+            RepoEmpleadosArchivo repoEmpleados
     ) {
         this.view = view;
         this.repoOrdenes = repoOrdenes;
         this.repoRepuestos = repoRepuestos;
         this.repoServicios = repoServicios;
+        this.repoEmpleados = repoEmpleados;
 
         this.modelOrdenes = new DefaultTableModel(
                 new Object[]{"N°", "Fecha", "Estado", "Diagnóstico", "Prioridad", "Legajo", "Horas"}, 0);
@@ -44,6 +53,7 @@ public class OrdenController {
         inicializar();
         cargarCatalogos(); // precarga de CSVs
         cargarOrdenes();   // carga de órdenes
+        cargarEmpleadosEnCombo();
     }
 
     private void inicializar() {
@@ -135,17 +145,35 @@ public class OrdenController {
     // =======================
     private void guardarOrden() {
         try {
+            // Número de orden
             int numero = view.getNumeroOrden();
-            LocalDate fecha = LocalDate.parse(view.getFecha());
+
+            // Fecha en formato dd/MM/yyyy (la vista muestra ese formato)
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            LocalDate fecha = LocalDate.parse(view.getFecha(), fmt);
+
+            // Estado, diagnóstico, prioridad
             EstadoOT estado = EstadoOT.fromString(view.getEstado());
             String diag = view.getDiagnostico();
             Prioridad pr = Prioridad.valueOf(view.getPrioridad().toUpperCase());
-            int legajo = Integer.parseInt(view.getEmpleado());
+
+            // 🔹 Empleado tomado desde el combo (no de un textfield)
+            int legajo = view.getLegajoEmpleadoSeleccionado();
+
+            // Horas trabajadas
             float horas = view.getHoras();
 
+            // 🔹 Restricción: máximo 2 órdenes activas para este empleado
+            int activas = repoOrdenes.contarOrdenesActivasPorEmpleado(legajo);
+            if (activas >= 2) {
+                view.mostrarMensaje("El empleado seleccionado ya tiene 2 órdenes activas. Elija otro empleado.");
+                return;
+            }
+
+            // Crear la orden
             OrdenDeTrabajo o = new OrdenDeTrabajo(numero, fecha, estado, diag, pr, legajo, horas);
 
-            // Repuestos de la tabla
+            // 🔹 REPUESTOS de la tabla
             for (int i = 0; i < modelRepuestos.getRowCount(); i++) {
                 String codigo = modelRepuestos.getValueAt(i, 0).toString();
                 String desc = modelRepuestos.getValueAt(i, 1).toString();
@@ -154,7 +182,7 @@ public class OrdenController {
                 o.agregarRepuesto(new ItemRepuesto(codigo, desc, cant, precio));
             }
 
-            // Servicios de la tabla
+            // 🔹 SERVICIOS de la tabla
             for (int i = 0; i < modelServicios.getRowCount(); i++) {
                 String desc = modelServicios.getValueAt(i, 0).toString();
                 double h = Double.parseDouble(modelServicios.getValueAt(i, 1).toString());
@@ -162,10 +190,17 @@ public class OrdenController {
                 o.agregarServicio(new LineaServicio(desc, h, tarifa));
             }
 
+            // Guardar
             repoOrdenes.guardar(o);
-            cargarOrdenes();
+
+            cargarOrdenes(); // refresca tabla + número + fecha
             view.mostrarMensaje("Orden guardada correctamente.");
-            view.limpiarFormulario();
+            view.limpiarFormulario(); // limpia campos pero NO el número
+
+        } catch (DateTimeParseException e) {
+            view.mostrarMensaje("La fecha debe tener formato dd/MM/yyyy.");
+        } catch (NumberFormatException e) {
+            view.mostrarMensaje("Verifique los valores numéricos (horas, tarifas, cantidades...).");
         } catch (Exception e) {
             view.mostrarMensaje("Error al guardar orden: " + e.getMessage());
             e.printStackTrace();
@@ -184,6 +219,18 @@ public class OrdenController {
         }
     }
 
+    private String buscarNombreEmpleado(int legajo) {
+        Empleado emp = repoEmpleados.buscarPorLegajo(legajo);
+        if (emp != null) {
+            return emp.getNombre();   // o getApellido(), o getNombreCompleto()
+        }
+        return "Desconocido";
+    }
+    public List<OrdenDeTrabajo> listarOrdenesPorEmpleado(int legajo) {
+        return repoOrdenes.listarPorEmpleado(legajo);
+    }
+
+
     public void cargarOrdenes() {
         modelOrdenes.setRowCount(0);
         List<OrdenDeTrabajo> ordenes = repoOrdenes.listar();
@@ -194,10 +241,32 @@ public class OrdenController {
                     o.getEstado(),
                     o.getDiagnostico(),
                     o.getPrioridad(),
-                    o.getLegajoEmpleado(),
+                    buscarNombreEmpleado(o.getLegajoEmpleado()),
                     o.getHorasTrabajadas()
             });
         }
+
+        // Después de refrescar la tabla, calculamos el próximo número
+        int siguiente = repoOrdenes.proximoNumero();
+        view.prepararNumeroOrden(siguiente); //num incremetnal; id orden
+        view.setFechaHoy();        // Fecha de hoy automática
+        // Opcional: recargar también empleados por si cambió algo
+        cargarEmpleadosEnCombo();
+    }
+
+    public void cargarEmpleadosEnCombo() {
+        List<Empleado> empleados = repoEmpleados.listar();
+        List<String> etiquetas = new java.util.ArrayList<>();
+
+        for (Empleado e : empleados) {
+            if (e instanceof Mecanico) {  // solo mecánicos para órdenes
+                Mecanico m = (Mecanico) e;
+                // Formato: "123 - Juan Pérez - Motores"
+                String etiqueta = m.getLegajo() + " - " + m.getNombre() + " - " + m.getEspecialidad();
+                etiquetas.add(etiqueta);
+            }
+        }
+        view.setEmpleados(etiquetas);
     }
 
     // =======================

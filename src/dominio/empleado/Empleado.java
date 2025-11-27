@@ -4,9 +4,25 @@ import dominio.excepciones.HorasInvalidasException;
 
 public abstract class Empleado {
     private final int legajo;
+    private String nombre;
 
-    public Empleado(int legajo) { this.legajo = legajo; }
-    public int getLegajo() { return legajo; }
+    public Empleado(int legajo, String nombre) {
+        this.legajo = legajo;
+        this.nombre = nombre;
+    }
+
+    public int getLegajo() {
+        return legajo;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
 
     /** Tarifa pura por hora del empleado */
     public abstract double tarifaHora();

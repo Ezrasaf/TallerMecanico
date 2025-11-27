@@ -28,6 +28,12 @@ public class DashboardControlador {
     private final Map<String, JPanel> modulos = new HashMap<>();
     private final CardLayout layout;
 
+    // Controladores (si querés usarlos después)
+    private ClienteController clienteController;
+    private VehiculoController vehiculoController;
+    private EmpleadoController empleadoController;
+    private OrdenController ordenController;
+
     public DashboardControlador(DashboardView view) {
         this.view = view;
         this.layout = new CardLayout();
@@ -41,6 +47,9 @@ public class DashboardControlador {
         // Configura el layout principal
         view.getContentPanel().setLayout(layout);
 
+        // -----------------------------
+        // Repositorios
+        // -----------------------------
         RepositorioClientes repoClientes = new RepoClientesArchivo("data/clientes.csv");
         RepositorioVehiculos repoVehiculos = new RepoVehiculosArchivo("data/vehiculos.csv");
         RepoEmpleadosArchivo repoEmpleados = new RepoEmpleadosArchivo("data/empleados.csv");
@@ -48,37 +57,71 @@ public class DashboardControlador {
         RepoRepuestosArchivo repoRepuestos = new RepoRepuestosArchivo("data/repuestos.csv");
         RepoServiciosArchivo repoServicios = new RepoServiciosArchivo("data/servicios.csv");
 
+        // -----------------------------
+        // Vistas
+        // -----------------------------
         OrdenView ordenView = new OrdenView();
-
         ClienteView clienteView = new ClienteView();
         VehiculoView vehiculoView = new VehiculoView();
+        EmpleadoView empleadoView = new EmpleadoView();
 
-        ClienteController clienteController = new ClienteController(clienteView, repoClientes, repoVehiculos);
-        VehiculoController vehiculoController = new VehiculoController(vehiculoView, repoVehiculos, clienteController);
-        OrdenController ordenController = new OrdenController(ordenView, repoOrdenes, repoRepuestos, repoServicios);
+        // -----------------------------
+        // Controladores
+        // -----------------------------
+
+        // ÓRDENES (va primero porque Empleados lo usa)
+        ordenController = new OrdenController(
+                ordenView,
+                repoOrdenes,
+                repoRepuestos,
+                repoServicios,
+                repoEmpleados
+        );
+
+        // CLIENTES
+        clienteController = new ClienteController(
+                clienteView,
+                repoClientes,
+                repoVehiculos
+        );
+
+        // VEHÍCULOS (recibe ClienteController para avisar recargas)
+        vehiculoController = new VehiculoController(
+                vehiculoView,
+                repoVehiculos,
+                clienteController
+        );
+        // ClienteController necesita VehiculoController para recargar al borrar cliente
         clienteController.setVehiculoController(vehiculoController);
 
+        // EMPLEADOS (sincronizado con ÓRDENES para el combo)
+        empleadoController = new EmpleadoController(
+                empleadoView,
+                repoEmpleados,
+                ordenController
+        );
 
-        EmpleadoView empleadoView = new EmpleadoView();
-        new EmpleadoController(empleadoView, repoEmpleados);
-
-
-        // Por ahora agregamos paneles placeholder hasta crear las vistas reales
+        // -----------------------------
+        // Registrar módulos en el CardLayout
+        // -----------------------------
         modulos.put("clientes", clienteView.getRootPanel());
         modulos.put("vehiculos", vehiculoView.getRootPanel());
         modulos.put("ordenes", ordenView.getRootPanel());
         modulos.put("empleados", empleadoView.getRootPanel());
         modulos.put("facturacion", crearPlaceholder("Facturación y Pagos"));
 
-        // Añadimos los paneles al contentPanel
         modulos.forEach((nombre, panel) -> view.getContentPanel().add(panel, nombre));
 
-        // Asociamos los eventos a los botones del sidebar
+        // -----------------------------
+        // Botones del sidebar
+        // -----------------------------
         view.getBtnClientes().addActionListener(e -> mostrarModulo("clientes"));
         view.getBtnVehiculos().addActionListener(e -> mostrarModulo("vehiculos"));
         view.getBtnOrdenes().addActionListener(e -> mostrarModulo("ordenes"));
         view.getBtnEmpleados().addActionListener(e -> mostrarModulo("empleados"));
-        // Mostramos la vista por defecto
+        // (si más adelante tenés btnFacturacion, acá sumás el listener)
+
+        // Vista por defecto
         layout.show(view.getContentPanel(), "clientes");
     }
 

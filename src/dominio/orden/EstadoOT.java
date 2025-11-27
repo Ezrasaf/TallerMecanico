@@ -16,7 +16,7 @@ public enum EstadoOT {
         return estado;
     }
 
-    // ✅ Método auxiliar
+    //  Método auxiliar
     public static EstadoOT fromString(String texto) {
         for (EstadoOT e : EstadoOT.values()) {
             if (e.getEstado().equalsIgnoreCase(texto.trim())) {

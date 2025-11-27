@@ -5,8 +5,8 @@ public class Mecanico extends Empleado {
     private double salarioMensual;
     private Nivel nivel;
 
-    public Mecanico(int legajo, String especialidad, double salarioMensual, Nivel nivel) {
-        super(legajo);
+    public Mecanico(int legajo,String nombre, String especialidad, double salarioMensual, Nivel nivel) {
+        super(legajo, nombre);
         this.especialidad = especialidad;
         this.salarioMensual = salarioMensual;
         this.nivel = nivel;

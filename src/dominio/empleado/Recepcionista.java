@@ -3,8 +3,8 @@ package dominio.empleado;
 public class Recepcionista extends Empleado {
     private double tarifaHora;
 
-    public Recepcionista(int legajo, double tarifaHora) {
-        super(legajo);
+    public Recepcionista(int legajo,String nombre, double tarifaHora) {
+        super(legajo, nombre);
         this.tarifaHora = tarifaHora;
     }
 
