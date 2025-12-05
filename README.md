@@ -3,13 +3,13 @@
 
 Este proyecto implementa un **sistema integral para la gestión operativa de un taller mecánico**, incluyendo manejo de clientes, vehículos, órdenes de trabajo, servicios, repuestos e historial por empleado.
 
-Diseñado en **Java**, con arquitectura en capas, **principios SOLID**, **patrones GRASP**, persistencia por archivos y una interfaz gráfica en **Swing**.
+Diseñado en **Java**, con arquitectura en capas, **principios SOLID**, **patrones GRASP**, persistencia en **Base de Datos MySQL** y una interfaz gráfica en **Swing**.
+
+Presentacion: https://gamma.app/docs/Sistema-de-Gestion-para-Taller-Mecanico-sk2prxrmf6xqv9k
 
 ---
 
 ## 📸 Vista General del Proyecto
-
-> *(Reemplazá `img/dashboard.png` por el nombre real de tu captura)*
 
 ![Dashboard](img/dashboard.png)
 
@@ -23,7 +23,7 @@ Diseñado en **Java**, con arquitectura en capas, **principios SOLID**, **patron
 - Controlar servicios y repuestos utilizados  
 - Asignar mecánicos y validar su disponibilidad  
 - Registrar historial por empleado  
-- Mantener persistencia en archivos de forma segura  
+- Mantener los datos en una **base de datos relacional** de forma segura  
 
 ---
 
@@ -43,49 +43,63 @@ Contiene las entidades fundamentales del negocio:
 - `OrdenDeTrabajo`
 - `LineaServicio`
 - `ItemRepuesto`
-- `Historial` *(mejora incorporada)*
+- `Historial`
 
-> Ejemplo UML (del informe):  
-![Diagrama UML](img/uml_taller.png)
+📌 **UML (vista general del sistema):**
 
-> *Reemplazá esta imagen por tu captura real.*
+![UML](img/uml_taller.png)
 
 ---
 
-## **2️⃣ Capa de Datos (Persistencia – DAO)**
+## **2️⃣ Capa de Datos (Persistencia – Repositorios + MySQL)**
 
-Persistencia basada en archivos CSV/TXT:
+Persistencia basada en **MySQL** utilizando **JDBC**:
 
-- `RepoClientesArchivo`
-- `RepoVehiculosArchivo`
-- `RepoRepuestosArchivo`
-- `RepoServiciosArchivo`
-- `RepoOrdenesArchivo`
-- `RepoEmpleadosArchivo`
+- `RepoClientesBD`
+- `RepoVehiculosBD`
+- `RepoRepuestosBD`
+- `RepoServiciosBD`
+- `RepoOrdenesBD`
+- `RepoEmpleadosBD`
+- `ConexionDB` para administrar la conexión
 
-Mejoras implementadas:
+Características:
 
-- Manejo seguro de archivos con `try-with-resources`  
-- `proximoNumero()` para autogeneración de órdenes  
-- Búsqueda por legajo y filtrado por mecánico  
-- Validación de datos y formato estandarizado  
+- Creación automática de tablas (si no existen)  
+- Consultas parametrizadas para listar, insertar, actualizar y eliminar  
+- Capa de acceso a datos desacoplada de la lógica de negocio  
+- Centralización de la configuración de conexión (URL, usuario, password)
 
 ---
 
 ## **3️⃣ Capa de Presentación (Swing UI)**
 
-Ventanas principales:
+### 👤 **Gestión de Clientes**
+![Clientes](img/clientes.png)
 
-- Dashboard  
-- Gestión de Clientes  
-- Gestión de Vehículos  
-- Gestión de Órdenes  
-- Asignación de Mecánicos  
-- Ventana de **Historial por Empleado**
+---
 
-Ejemplo visual:
+### 🚗 **Gestión de Vehículos**
+![Vehículos](img/vehiculos.png)
 
-![UI Example](img/orden_trabajo.png)
+---
+
+### 🛠️ **Gestión de Empleados**
+![Empleados](img/empleados.png)
+
+---
+
+### 📄 **Órdenes de Trabajo**
+Incluye:
+- Estado  
+- Prioridad  
+- Mecánico asignado  
+- Fecha de ingreso  
+- Diagnóstico  
+- Horas trabajadas  
+- Servicios y repuestos  
+
+![Orden de Trabajo](img/orden_trabajo.png)
 
 ---
 
@@ -112,8 +126,8 @@ Se puede consultar:
 - Tareas realizadas  
 - Tiempo empleado  
 
-### ✔ Persistencia Completa  
-Todo queda almacenado y puede recuperarse al iniciar el sistema.
+### ✔ Persistencia en BD  
+Todos los datos se almacenan en **MySQL** y se recuperan al iniciar el sistema.
 
 ---
 
@@ -124,68 +138,84 @@ Todo queda almacenado y puede recuperarse al iniciar el sistema.
 | Principio | Aplicación |
 |----------|------------|
 | SRP | Repositorios separados por entidad, controladores independientes |
-| OCP | Nuevas persistencias o vistas sin modificar código existente |
+| OCP | Nuevas vistas o lógicas sin modificar código existente |
 | LSP | `Mecanico` y `Recepcionista` sustituyen a `Empleado` sin romper nada |
-| ISP | Interfaces pequeñas (ej. `Facturable`) |
-| DIP | Controladores dependen de interfaces, no de implementaciones |
+| ISP | Interfaces pequeñas (`Facturable`) |
+| DIP | Controladores dependen de interfaces / abstracciones, no de implementaciones concretas |
 
 ---
 
 ## **🔹 GRASP**
 
 - **Controller:** controladores por entidad → menos acoplamiento  
-- **Information Expert:** Orden calcula su total, Mecánico sabe si está disponible  
+- **Information Expert:** Orden calcula su total; Mecánico sabe si está disponible  
 - **Creator:** OrdenController crea órdenes y asignaciones  
 - **Low Coupling / High Cohesion:** vistas separadas de la lógica  
-- **Indirection:** capa controladores gestiona la comunicación  
+- **Indirection:** capa controladores gestiona la comunicación entre UI y BD  
 
 ---
 
 # 🔥 Mejoras Implementadas (Segunda Entrega)
 
+- ✔ Migración del modelo a **Base de Datos MySQL**  
 - ✔ Nombre agregado a empleados  
-- ✔ Archivo normalizado para empleados  
+- ✔ Archivo/tabla normalizada para empleados  
 - ✔ Combo de selección con nombres completos  
 - ✔ Historial completo por mecánico  
-- ✔ Validación de órdenes activas  
+- ✔ Validación de órdenes activas por empleado  
 - ✔ Reestructuración de controladores  
-- ✔ Nuevos métodos en repositorios  
-- ✔ UML actualizado con nuevas clases  
+- ✔ Nuevos métodos en repositorios basados en BD  
+- ✔ UML actualizado con nuevas clases y componentes  
 
 ---
 
 # 🗂️ Estructura del Proyecto
 
+```text
 /src
-/dominio
-Cliente.java
-Empleado.java
-Mecanico.java
-...
-/persistencia
-RepoClientesArchivo.java
-RepoOrdenesArchivo.java
-...
-/controladores
-ClienteController.java
-OrdenController.java
-/vista
-DashboardView.java
-OrdenView.java
-...
-/data
-clientes.csv
-empleados.csv
-ordenes.csv
-vehiculos.csv
+   /dominio
+      Cliente.java
+      Empleado.java
+      Mecanico.java
+      ...
+   /datos
+      ConexionDB.java
+      RepoClientesBD.java
+      RepoOrdenesBD.java
+      RepoVehiculosBD.java
+      ...
+   /controlador
+      ClienteController.java
+      OrdenController.java
+      DashboardControlador.java
+   /vista
+      DashboardView.java
+      OrdenView.java
+      ClienteView.java
+      VehiculoView.java
+      EmpleadoView.java
+
+
+
+---
 
 # ▶️ Cómo Ejecutarlo
 
-1. Clonar el repositorio  
-2. Abrir el proyecto en **IntelliJ IDEA / Eclipse**  
-3. Verificar que la carpeta `/data` existe  
-4. Ejecutar la clase `App.java`  
-5. Navegar desde el Dashboard  
+1. Clonar el repositorio
+2. Crear la base de datos en MySQL (por ejemplo):
+
+CREATE DATABASE tallermecanico;
+
+3. Ajustar en ConexionDB los parámetros de conexión:
+
+URL      = "jdbc:mysql://localhost:3306/tallermecanico";
+USUARIO  = "root";
+PASSWORD = "tu_password";
+
+4. Asegurarse de tener el MySQL Connector en el classpath
+5.Abrir el proyecto en IntelliJ IDEA / Eclipse
+6.Ejecutar la clase App.java
+7.Navegar desde el Dashboard
 
 ---
 
@@ -193,7 +223,7 @@ vehiculos.csv
 
 - Pruebas unitarias incluidas en `/Pruebas_unitarias`  
 - Validación de disponibilidad de mecánicos  
-- Persistencia asegurada ante cierres imprevistos  
+- Manejo de errores de conexión a BD 
 - Validaciones de entradas en formularios Swing  
 
 ---
@@ -202,7 +232,7 @@ vehiculos.csv
 
 - **Java 17**  
 - **Swing**  
-- **CSV/TXT Persistencia**  
+- **MySQL + JDBC (MySQL Connector/J)**  
 - **UML + Buenas Prácticas de Diseño**  
 - **Git & GitHub**  
 
@@ -210,9 +240,9 @@ vehiculos.csv
 
 # 👤 Autor
 
-**Ezrasaf**  
+**Ezra Safadie**  
 Estudiante de Ingeniería en Informática (UADE)  
-Intereses: Desarrollo Backend, Ingeniería de Datos, Automatización, IA.
+Intereses: Backend, Datos, Automatización, IA.
 
 ---
 
@@ -221,9 +251,10 @@ Intereses: Desarrollo Backend, Ingeniería de Datos, Automatización, IA.
 Este proyecto demuestra:
 
 - Programación orientada a objetos sólida  
-- Arquitectura por capas  
+- Arquitectura por capas con acceso a datos real sobre BD
 - Dominio de patrones SOLID y GRASP  
 - Construcción de una aplicación real con reglas de negocio  
 - Uso profesional de Swing  
-- Persistencia y manejo de datos  
+- Persistencia e Integración Java + MySQL con JDBC 
 - UML aplicado a un caso real  
+
