@@ -11,7 +11,7 @@ Presentacion: https://gamma.app/docs/Sistema-de-Gestion-para-Taller-Mecanico-sk2
 
 ## 📸 Vista General del Proyecto
 
-![Dashboard](img/dashboard.png)
+![Dashboard](img/Dashboard.png)
 
 ---
 
@@ -47,7 +47,7 @@ Contiene las entidades fundamentales del negocio:
 
 📌 **UML (vista general del sistema):**
 
-![UML](img/uml_taller.png)
+![UML](img/Tallersistemamejorado.png)
 
 ---
 
@@ -75,17 +75,17 @@ Características:
 ## **3️⃣ Capa de Presentación (Swing UI)**
 
 ### 👤 **Gestión de Clientes**
-![Clientes](img/clientes.png)
+![Clientes](img/Dashboard.png)
 
 ---
 
 ### 🚗 **Gestión de Vehículos**
-![Vehículos](img/vehiculos.png)
+![Vehículos](img/Vehiculos.png)
 
 ---
 
 ### 🛠️ **Gestión de Empleados**
-![Empleados](img/empleados.png)
+![Empleados](img/Empleados.png)
 
 ---
 
@@ -99,7 +99,7 @@ Incluye:
 - Horas trabajadas  
 - Servicios y repuestos  
 
-![Orden de Trabajo](img/orden_trabajo.png)
+![Orden de Trabajo](img/OT.png)
 
 ---
 
@@ -257,4 +257,5 @@ Este proyecto demuestra:
 - Uso profesional de Swing  
 - Persistencia e Integración Java + MySQL con JDBC 
 - UML aplicado a un caso real  
+
 
